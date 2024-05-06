@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-
 	"net"
 	"os"
+	"github.com/codecrafters-io/redis-starter-go/config"
 )
 
 func main() {
@@ -25,30 +25,8 @@ func main() {
 			fmt.Println("Error accepting connection: ", err.Error())
 			os.Exit(1)
 		}
-		
+
 		// Handle net connection in a new goroutine
-		go handleConnection(conn)
-	}
-}
-
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
-	fmt.Println("Connection from ", conn.RemoteAddr().String())
-
-	for {
-		// Read data from the connection
-		buffer := make([]byte, 1024)
-		n, err := conn.Read(buffer)
-		if err != nil {
-			fmt.Println("Failed to read data: ", err.Error())
-			break
-		}
-		
-		fmt.Println("Received: ", string(buffer[:n]))
-
-		// Write response to the connection
-		response := "+PONG\r\n"
-		conn.Write([]byte(response))
-		
+		go config.HandleConnection(conn)
 	}
 }
