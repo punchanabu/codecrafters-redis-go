@@ -43,7 +43,6 @@ func Decode(data []byte) (string, []string, error) {
 			return "", nil, errors.New("data format error: not enough data")
 		}
 
-		// Skip the length part
 		elements := parts[index+1]
 		results = append(results, string(elements))
 		index += 2
