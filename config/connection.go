@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/codecrafters-io/redis-starter-go/command/parser"
 	"github.com/codecrafters-io/redis-starter-go/command/handler"
+	"github.com/codecrafters-io/redis-starter-go/command/parser"
 )
 
 func HandleConnection(conn net.Conn) {
@@ -21,8 +21,18 @@ func HandleConnection(conn net.Conn) {
 			break
 		}
 
+		// Handle PING check
+		if string(buffer[:n]) == "+PING\r\n" {
+			handler.HandleCommand("PING", nil)
+			break
+		}
+
 		// Decode the data
-		command, argument := parser.Decode(buffer[:n])
+		command, argument, err := parser.Decode(buffer[:n])
+		if err != nil {
+			fmt.Println("Failed to decode data: ", err.Error())
+			break
+		}
 
 		// Handle the command
 		response := handler.HandleCommand(command, argument)
