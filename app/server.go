@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net"
 	"os"
+
 	"github.com/codecrafters-io/redis-starter-go/config"
+	"github.com/codecrafters-io/redis-starter-go/store"
 )
 
 func main() {
@@ -18,6 +20,9 @@ func main() {
 	defer listener.Close()
 	fmt.Println("Server listening on port 6379")
 
+	// Initialize the Store for Get and Set commands
+	redisStore := store.New()
+
 	// Accept connections
 	for {
 		conn, err := listener.Accept()
@@ -27,6 +32,6 @@ func main() {
 		}
 
 		// Handle net connection in a new goroutine
-		go config.HandleConnection(conn)
+		go config.HandleConnection(conn, redisStore)
 	}
 }
