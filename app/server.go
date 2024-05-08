@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -11,8 +12,13 @@ import (
 
 func main() {
 
+	// Configure listening to port
+	var portFlag string
+	flag.StringVar(&portFlag, "port", "6379", "The port in which you wish to bind the redis service to")
+	flag.Parse()
+	
 	// Listen on all interfaces on port 6379
-	listener, err := net.Listen("tcp", "0.0.0.0:6379")
+	listener, err := net.Listen("tcp", "0.0.0.0:" + portFlag)
 	if err != nil {
 		fmt.Println("Failed to bind to port 6379:", err)
 		os.Exit(1)
