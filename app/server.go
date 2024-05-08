@@ -22,6 +22,8 @@ func main() {
 
 	// Initialize the Store for Get and Set commands
 	redisStore := store.New()
+	// Start the cleanup routine for store.
+	redisStore.CleanUpExpiredKey()
 
 	// Accept connections
 	for {

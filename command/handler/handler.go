@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/codecrafters-io/redis-starter-go/store"
@@ -51,9 +53,28 @@ func handleGet(argument []string, store *store.Store) string {
 }
 
 func handleSet(argument []string, store *store.Store) string {
+	// Check if there are at least key and value arguments
 	if len(argument) < 2 {
 		return "-ERR not enough arguments"
 	}
-	store.Set(argument[0], argument[1])
+
+	var expiryMillis int64 = 0 // Default of no expiry time
+	// Check if the optional expiration time is provided
+	if len(argument) > 2 {
+		// Check if the 'PX' expiration time is provided
+		fmt.Println(strings.ToUpper(argument[2]), " ", argument[3])
+		if len(argument) == 4 && strings.ToUpper(argument[2]) == "PX" {
+			var err error
+			expiryMillis, err = strconv.ParseInt(argument[3], 10, 64)
+			if err != nil {
+				return "-ERR invalid expiration time"
+			}
+		} else {
+			return "-ERR wrong number of arguments for 'set' command or wrong syntax"
+		}
+	}
+
+	// Perform the Set operation
+	store.Set(argument[0], argument[1], expiryMillis)
 	return "+OK"
 }
