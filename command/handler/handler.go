@@ -83,9 +83,32 @@ func handleSet(argument []string, store *store.Store) string {
 }
 
 func handleInfo(argument []string, config *config.ReplicaConfig) string {
-	if len(argument) > 0 && strings.ToLower(argument[0]) == "replication" {
-		info := "role:" + config.Role
-		return "$" + strconv.Itoa(len(info)) + "\r\n" + info + "\r\n"
+	
+	if len(argument) == 0 {
+		return "-ERR no argument provided"
 	}
-	return "-ERR unsupported INFO section"
+
+	section := strings.ToLower(argument[0])
+	switch section {
+	case "replication":
+		return formatReplicationInfo(config)
+	default:
+		return "-ERR unsupported INFO section"
+	}
+}
+
+func formatReplicationInfo(config *config.ReplicaConfig) string {
+	infoLines := []string{
+		"role:" + config.Role,
+		"connected_slaves:" + strconv.Itoa(config.ConnectedSlaves),
+		"master_replid:" + config.MasterReplID,
+		"master_repl_offset:" + strconv.Itoa(config.MasterReplOffset),
+		"second_repl_offset:" + strconv.Itoa(config.SecondReplOffset),
+		"repl_backlog_active:" + strconv.Itoa(config.ReplBacklogActive),
+		"repl_backlog_size:" + strconv.Itoa(config.ReplBacklogSize),
+		"repl_backlog_first_byte_offset:" + strconv.Itoa(config.ReplBacklogFirstByteOffset),
+		"repl_backlog_histlen:" + strconv.Itoa(config.ReplBacklogHistLen),
+	}
+	info := strings.Join(infoLines, "\r\n")
+	return "$" + strconv.Itoa(len(info)) + "\r\n" + info + "\r\n"
 }
