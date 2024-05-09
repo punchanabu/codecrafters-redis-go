@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -13,22 +12,34 @@ import (
 
 func main() {
 
-	// Configure listening to port
-	var portFlag string
-	var replicaOf string // To hold the replica of flag data if any
+	var portFlag = "6379" // default port
+	var replicaOf = ""
+	var role = "master"
 
-	flag.StringVar(&portFlag, "port", "6379", "The port on which the Redis service will bind")
-	flag.StringVar(&replicaOf, "replicaof", "", "Specify master host and port if this instance is a replica")
-	flag.Parse()
-
-	// Determine role based on the replicaOf flag
-	role := "master"
-	if replicaOf != "" {
-		role = "slave"
+	// parse command-line arguments
+	for i := 1; i < len(os.Args); i++ {
+		switch os.Args[i] {
+		case "--port":
+			if i+1 < len(os.Args) {
+				portFlag = os.Args[i+1]
+				i++ // Skip next argument since it's the value for --port
+			}
+		case "--replicaof":
+			if i+2 < len(os.Args) {
+				replicaOf = os.Args[i+1] + ":" + os.Args[i+2]
+				role = "slave"
+				i += 2 // Skip next two arguments as they are host and port
+			}
+		}
 	}
 
 	// Initialize the Replica Config with the determined role
 	replicaConfig := config.NewReplicaConfig(role)
+
+	// Temporarily print the replica information if the role is slave
+	if role == "slave" {
+		connection.InitHandshake(replicaOf)
+	}
 
 	// Listen on all interfaces on port 6379
 	listener, err := net.Listen("tcp", "0.0.0.0:"+portFlag)
@@ -37,7 +48,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer listener.Close()
-	fmt.Println("Server listening on port 6379")
+	fmt.Println("Server listening on port " + portFlag)
 
 	// Initialize the Store for Get and Set commands
 	redisStore := store.New()
