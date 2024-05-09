@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/codecrafters-io/redis-starter-go/config"
 	"github.com/codecrafters-io/redis-starter-go/store"
 )
 
-func HandleCommand(command string, argument []string, store *store.Store) string {
+func HandleCommand(command string, argument []string, store *store.Store, config *config.ReplicaConfig) string {
 
 	lowerCommand := strings.ToLower(command)
 
@@ -21,6 +22,8 @@ func HandleCommand(command string, argument []string, store *store.Store) string
 		return handleGet(argument, store)
 	case "set":
 		return handleSet(argument, store)
+	case "info":
+		return handleInfo(argument, config)
 	default:
 		return "-ERR unknown command"
 	}
@@ -77,4 +80,12 @@ func handleSet(argument []string, store *store.Store) string {
 	// Perform the Set operation
 	store.Set(argument[0], argument[1], expiryMillis)
 	return "+OK"
+}
+
+func handleInfo(argument []string, config *config.ReplicaConfig) string {
+	if len(argument) > 0 && strings.ToLower(argument[0]) == "replication" {
+		info := "role:" + config.Role
+		return "$" + strconv.Itoa(len(info)) + "\r\n" + info + "\r\n"
+	}
+	return "-ERR unsupported INFO section"
 }

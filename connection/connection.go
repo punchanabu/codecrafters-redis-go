@@ -1,4 +1,4 @@
-package config
+package connection
 
 import (
 	"fmt"
@@ -6,10 +6,11 @@ import (
 
 	"github.com/codecrafters-io/redis-starter-go/command/handler"
 	"github.com/codecrafters-io/redis-starter-go/command/parser"
+	"github.com/codecrafters-io/redis-starter-go/config"
 	"github.com/codecrafters-io/redis-starter-go/store"
 )
 
-func HandleConnection(conn net.Conn, store *store.Store) {
+func HandleConnection(conn net.Conn, store *store.Store, config *config.ReplicaConfig) {
 	defer conn.Close()
 	fmt.Println("Connection from ", conn.RemoteAddr().String())
 
@@ -24,7 +25,7 @@ func HandleConnection(conn net.Conn, store *store.Store) {
 
 		// Handle PING check
 		if string(buffer[:n]) == "+PING\r\n" {
-			handler.HandleCommand("PING", nil, store)
+			handler.HandleCommand("PING", nil, store, config)
 			break
 		}
 
@@ -36,7 +37,7 @@ func HandleConnection(conn net.Conn, store *store.Store) {
 		}
 
 		// Handle the command
-		response := handler.HandleCommand(command, argument, store)
+		response := handler.HandleCommand(command, argument, store, config)
 
 		// Encode the response
 		encodedResponse := parser.Encode(response)
