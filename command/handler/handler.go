@@ -24,6 +24,8 @@ func HandleCommand(command string, argument []string, store *store.Store, config
 		return handleSet(argument, store)
 	case "info":
 		return handleInfo(argument, config)
+	case "replconf":
+		return handleReplicationConfig()
 	default:
 		return "-ERR unknown command"
 	}
@@ -83,7 +85,7 @@ func handleSet(argument []string, store *store.Store) string {
 }
 
 func handleInfo(argument []string, config *config.ReplicaConfig) string {
-	
+
 	if len(argument) == 0 {
 		return "-ERR no argument provided"
 	}
@@ -111,4 +113,8 @@ func formatReplicationInfo(config *config.ReplicaConfig) string {
 	}
 	info := strings.Join(infoLines, "\r\n")
 	return "$" + strconv.Itoa(len(info)) + "\r\n" + info + "\r\n"
+}
+
+func handleReplicationConfig() string {
+	return "+OK"
 }

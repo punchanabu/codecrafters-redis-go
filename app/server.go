@@ -13,9 +13,9 @@ import (
 func main() {
 
 	var portFlag = "6379" // default port
-	var replicaOf = ""
 	var role = "master"
-
+	var masterHost = "localhost"
+	var masterPort = "6379"
 	// parse command-line arguments
 	for i := 1; i < len(os.Args); i++ {
 		switch os.Args[i] {
@@ -26,7 +26,8 @@ func main() {
 			}
 		case "--replicaof":
 			if i+2 < len(os.Args) {
-				replicaOf = os.Args[i+1] + ":" + os.Args[i+2]
+				masterHost = os.Args[i+1]
+				masterPort = os.Args[i+2]
 				role = "slave"
 				i += 2 // Skip next two arguments as they are host and port
 			}
@@ -38,7 +39,7 @@ func main() {
 
 	// Temporarily print the replica information if the role is slave
 	if role == "slave" {
-		connection.InitHandshake(replicaOf)
+		connection.InitHandshake(masterHost, masterPort, portFlag)
 	}
 
 	// Listen on all interfaces on port 6379
