@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/google/uuid"
 )
 
@@ -19,7 +21,7 @@ type ReplicaConfig struct {
 func NewReplicaConfig(role string) *ReplicaConfig {
 	return &ReplicaConfig{
 		Role:             role,
-		MasterReplID:     uuid.New().String(),
+		MasterReplID:     strings.ReplaceAll(uuid.New().String(), "-", ""),
 		MasterReplOffset: 0,
 	}
 }
