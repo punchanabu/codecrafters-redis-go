@@ -26,6 +26,8 @@ func HandleCommand(command string, argument []string, store *store.Store, config
 		return handleInfo(argument, config)
 	case "replconf":
 		return handleReplicationConfig()
+	case "psync":
+		return handlePsync(config)
 	default:
 		return "-ERR unknown command"
 	}
@@ -117,4 +119,8 @@ func formatReplicationInfo(config *config.ReplicaConfig) string {
 
 func handleReplicationConfig() string {
 	return "+OK"
+}
+
+func handlePsync(config *config.ReplicaConfig) string {
+	return fmt.Sprintf("+FULLRESYNC %s 0\r\n", config.MasterReplID)
 }

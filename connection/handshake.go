@@ -37,6 +37,11 @@ func InitHandshake(masterHost string, masterPort string, slavePort string) {
 		fmt.Println("Failed to send REPLCONF for capabilities:", err)
 		return
 	}
+
+	if ok, err := sendPsync(conn); !ok {
+		fmt.Println("Failed to send PSYNC:", err)
+		return
+	}
 }
 
 func sendPing(conn net.Conn) (bool, error) {
@@ -80,6 +85,30 @@ func sendReplConfig(conn net.Conn, command, value string) (bool, error) {
 	// Trim the response and check if it's "+OK"
 	response = strings.TrimSpace(response)
 	if response == "+OK" {
+		fmt.Println("Received:", response)
+		return true, nil // Successfully received the correct response
+	} else {
+		return false, fmt.Errorf("unexpected response: %s", response)
+	}
+}
+
+func sendPsync(conn net.Conn) (bool, error) {
+	// Send the PSYNC command to the Redis master
+	_, err := conn.Write([]byte("*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n"))
+	if err != nil {
+		return false, fmt.Errorf("failed to send PSYNC: %w", err)
+	}
+
+	// Prepare to read the response using bufio.Reader
+	reader := bufio.NewReader(conn)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		return false, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	// Trim the response and check if it starts with "+FULLRESYNC"
+	response = strings.TrimSpace(response)
+	if strings.HasPrefix(response, "+FULLRESYNC") {
 		fmt.Println("Received:", response)
 		return true, nil // Successfully received the correct response
 	} else {
