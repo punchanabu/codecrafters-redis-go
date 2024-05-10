@@ -122,5 +122,5 @@ func handleReplicationConfig() string {
 }
 
 func handlePsync(config *config.ReplicaConfig) string {
-	return fmt.Sprintf("+FULLRESYNC %s 0\r\n", config.MasterReplID)
+	return fmt.Sprintf("+FULLRESYNC %s 0", config.MasterReplID)
 }

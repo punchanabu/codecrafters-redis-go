@@ -10,7 +10,7 @@ import (
 	"github.com/codecrafters-io/redis-starter-go/store"
 )
 
-func HandleConnection(conn net.Conn, store *store.Store, config *config.ReplicaConfig) {
+func HandleConnection(conn net.Conn, store *store.Store, replicaConfig *config.ReplicaConfig) {
 	defer conn.Close()
 	fmt.Println("Connection from ", conn.RemoteAddr().String())
 
@@ -25,7 +25,7 @@ func HandleConnection(conn net.Conn, store *store.Store, config *config.ReplicaC
 
 		// Handle PING check
 		if string(buffer[:n]) == "+PING\r\n" {
-			handler.HandleCommand("PING", nil, store, config)
+			handler.HandleCommand("PING", nil, store, replicaConfig)
 			break
 		}
 
@@ -37,12 +37,20 @@ func HandleConnection(conn net.Conn, store *store.Store, config *config.ReplicaC
 		}
 
 		// Handle the command
-		response := handler.HandleCommand(command, argument, store, config)
+		response := handler.HandleCommand(command, argument, store, replicaConfig)
 
 		// Encode the response
 		encodedResponse := parser.Encode(response)
 
 		// Write the response
 		conn.Write([]byte(encodedResponse))
+
+		/*
+			Check if we have to send an RDB file as well
+			The RDB file will be send after PSYNC command
+		*/
+		if command == "PSYNC" {
+			config.SendRDBFile(conn)
+		}
 	}
 }
