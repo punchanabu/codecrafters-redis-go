@@ -20,10 +20,6 @@ func HandleConnection(conn net.Conn, store *store.Store, replicaConfig *config.R
 		So that I can propagate commands with those replicas
 	*/
 	var replica *ReplicaConnection
-	if replicaConfig.Role == "slave" {
-		replica = addReplica(conn)
-		defer removeReplica(replica.SessionID) // For cleaning up the Replicas
-	}
 
 	for {
 		// Read data from the connection
@@ -47,6 +43,12 @@ func HandleConnection(conn net.Conn, store *store.Store, replicaConfig *config.R
 			break
 		}
 
+		// Check If Command is the REPLICA command connecting
+		if helper.IsReplicaCommand(command) {
+			replica = addReplica(conn)
+			defer removeReplica(replica.SessionID)
+		}
+		
 		// Handle the command
 		response := handler.HandleCommand(command, argument, store, replicaConfig)
 
